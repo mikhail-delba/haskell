@@ -44,6 +44,11 @@ paddleColor = brown
 type Pos = (Int, Int) -- player/ball position...
 type Dir = (Int, Int) -- ...and direction
 
+data Ball = Ball { -- may be a distinct data type for a ball instead of GS fields?
+  ballPos :: Pos,
+  ballDir :: Dir
+  }
+
 data Move = MoveRight | MoveLeft | NoMovement
 
 data ScoreBoard = Scores {} -- a table of player's scores, storing top 5 up to date
@@ -94,9 +99,9 @@ ballMissed :: GameState -> GameState -- if TRUE, player's score -1!, return to i
 
 handleEvent :: Event -> GameState -> GameState
 -- Handling the event: A - moving left, D - moving right
-handleEvent (EventKey (Char 'a') Down _ _) game = game { paddleMove = MoveLeft }
-handleEvent (EventKey (Char 'a') Up _ _) game = game { paddleMove = NoMovement }
-handleEvent (EventKey (Char 'd') Down _ _) game = game { paddleMove = MoveRight }
-handleEvent (EventKey (Char 'd') Up _ _) game = game { paddleMove = NoMovement }
+handleEvent (EventKey (Char 'a') Down _ _) gs = gs { paddleMove = MoveLeft }
+handleEvent (EventKey (Char 'a') Up _ _) gs = gs { paddleMove = NoMovement }
+handleEvent (EventKey (Char 'd') Down _ _) gs = gs { paddleMove = MoveRight }
+handleEvent (EventKey (Char 'd') Up _ _) gs = gs { paddleMove = NoMovement }
 
 -- RENDERING...
