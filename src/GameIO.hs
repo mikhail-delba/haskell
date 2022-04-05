@@ -1,148 +1,102 @@
 module GameIO where
 
-import Data.Map
-import Data.Set as S
+import System.Random
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
-import Graphics.Gloss.Interface.Pure.Game
-import System.Random
-import System.Random.Shuffle (shuffle')
+import Graphics.Gloss.Interface.IO.Game
 
 
---REVAMP
---insert
+-- a player controlls a paddle, bouncing a ball off to the wall above.
+-- There are also borders right and left to the player
+-- if he succesfully hits the ball off, he gets +1 score. 
+-- if ball goes past the paddle, player looses.
 
---REWRITE:
---viewPort
---rendering with bitmaps
+--CONSTANTS
 
---don't explode on first step???
---viewport
+-- window size
+windowWidth = 300
+windowHeight = 300
 
---STILL CANNOT WIN ALTHOUGH CAN LOOSE :)
+-- wall
+wallHeight = 10
+wallWidth = windowWidth
+
+-- paddle
+paddleWidth = 2
+paddleLength = 10
+paddleSpeed = 10
+
+--ball
+ballRad = 10
+ballSpeed = 5 -- MIGHT SPEED UP OVER THE GAME => INTO GameState???
+
+fieldColor :: Color
+fieldColor = green
+
+ballColor :: Color
+ballColor = white
+
+paddleColor :: Color
+paddleColor = brown
+
+-- DATA/TYPES
+
+type Pos = (Int, Int) -- player/ball position...
+type Dir = (Int, Int) -- ...and direction
+
+data Move = MoveRight | MoveLeft | NoMovement
+
+data ScoreBoard = Scores {} -- a table of player's scores, storing top 5 up to date
+
+data GameState = GS { 
+  ballPos :: Pos,
+  ballDir :: Dir,
+  paddlePos :: Pos,
+  paddleMove :: Move,
+  score :: Int
+} deriving Show -- want to be able to show player's score with a number
+
+initialState :: GameState
+initialState = GS (0, 0) (1, 1) (5,5) NoMovement 0
+
+-- FUNCTIONS
 
 run :: IO ()
-run = do
+run = do 
     gen <- getStdGen
     startGame gen
-
-fieldSize@(fieldWidth, fieldHeight) = (10, 10) :: (Int, Int)
-mineCount = 5 :: Int
-
-createField :: Field
-createField = Data.Map.empty
-
-type Field = Map Cell CellState
-type Cell = (Int, Int)
-
-data CellState = Opened Int -- opened the cell; the parameter is the number of mined neighbor cells
-               | Mine       -- mined cell
-               | Flag       -- flag placed
-
-type Mines = Set Cell
-
--- generating the set of mines using shuffle function
-
-createMines :: RandomGen g => g -> Cell -> Mines
-createMines g fst = S.fromList $ Prelude.take mineCount $ shuffle g $ [(i, j)  | i <- [0 .. fieldWidth - 1] 
-              , j <- [0 .. fieldHeight - 1]
-              , (i, j) /= fst]
-
-shuffle g l = shuffle' l (fieldWidth * fieldHeight - 1) g
-
-data GameState = GS
-    { field    :: Field
-    , mines    :: Either StdGen Mines
-    , gameOver :: Bool
-    }
+  
+updateApp :: Float -> GameState -> GameState
+-- running all the functions below in a row
 
 startGame :: StdGen -> IO ()
-startGame gen = play (InWindow "DANGER MINES" windowSize (240, 160)) white 30 (initState gen) renderer handler updater
+-- startGame gen = play ... <gloss rendering specs using updateApp>
 
--- additional function to perform function with both tuple members
-twoFunc :: (a -> b) -> (a, a) -> (b, b)
-twoFunc f (a, b) = (f a, f b)
+-- moving Paddle in one frame
+movePaddle :: GameState -> Move -> GameState 
+movePaddle gs MoveLeft = gs {paddlePos = (x - paddleSpeed, y)}
+movePaddle gs MoveRight = gs {paddlePos = (x + paddleSpeed, y)}
+movePaddle gs NoMove = gs
 
-windowSize = twoFunc (* round cellSize) fieldSize
-cellSize = 24 :: Float
+-- moving ball for some distance in ballDir direction
+moveBall :: GameState -> Float -> GameState
+moveBall gs dist = gs {ballPos = (x + dx, y + dy)} 
 
-initState gen = GS createField (Left gen) False
+-- checking if ball collides with anything
+checkWallCollision :: Pos -> Bool
+checkPaddleCollision :: Pos -> Bool
 
-updater _ = id
+-- functions using checks above to update the GS
+wallHit :: GameState -> GameState
+borderHit :: GameState -> GameState
+paddleHit :: GameState -> GameState -- if TRUE, player's score +1!, other GS data kept the same
+ballMissed :: GameState -> GameState -- if TRUE, player's score -1!, return to initial position
 
-cellToScreen = twoFunc ((* cellSize) . fromIntegral)
+handleEvent :: Event -> GameState -> GameState
+-- Handling the event: A - moving left, D - moving right
+handleEvent (EventKey (Char 'a') Down _ _) game = game { paddleMove = MoveLeft }
+handleEvent (EventKey (Char 'a') Up _ _) game = game { paddleMove = NoMovement }
+handleEvent (EventKey (Char 'd') Down _ _) game = game { paddleMove = MoveRight }
+handleEvent (EventKey (Char 'd') Up _ _) game = game { paddleMove = NoMovement }
 
--- first click on the scene => generating the mines
-handler (EventKey (MouseButton LeftButton) Down _ mouse) gs@GS 
-    { 
-      mines = Left gen
-    } = gs 
-        { 
-          mines = Right $ createMines gen cell 
-        } where cell = screenToCell mouse
-
-handler (EventKey (MouseButton LeftButton) Down _ mouse) gs@GS
-    {
-      field = field
-    , mines = Right mines
-    , gameOver = False
-    } = gs
-    { 
-      field = newField
-    , gameOver = exploded -- game over if exploded
-    } where
-    newField = click cell field
-
-    exploded = case Data.Map.lookup cell newField of -- explode if last checked cell is a mine
-        Just Mine -> True
-        _         -> False
-
-    -- determine the cell player clicks on
-    cell@(cx, cy) = screenToCell mouse
-    
-    click :: Cell -> Field -> Field
-    click cell@(cx, cy) field
-        | cell `Data.Map.member` field = field -- do nothing if cell already clicked
-        | cell `S.member` mines = Data.Map.insert cell Mine field -- stepped on a mine
-        | otherwise = Data.Map.insert cell(Opened neighbours) field
-        where
-            -- nearby cells
-            neighbourCells = [ (i, j) | i <- [cx - 1 .. cx + 1], 0 <= i && i < fieldWidth , j <- [cy - 1 .. cy + 1], 0 <= j && j < fieldHeight] 
-            -- check if neighbours are mines and return their num
-            neighbours = length $ Prelude.filter (`S.member` mines) neighbourCells
-
-
-handler (EventKey (MouseButton RightButton) Down _ mouse) gs@GS { 
-    field = field
-    } = case Data.Map.lookup coord field of
-        Nothing -> gs { field = Data.Map.insert coord Flag field }
-        Just Flag -> gs { field = Data.Map.delete coord field }
-        _ -> gs
-        where coord = screenToCell mouse
-handler _ gs = gs
-
--- coords translation: screen to cell
-screenToCell = twoFunc (round . (/ cellSize)) . invertViewPort viewPort
-
-
-
---- Rendering 
-
--- using ViewPort and Picture classes from Gloss to render
-viewPort = ViewPort (twoFunc ((* (-1)) . (/ 2) . subtract cellSize) $ cellToScreen fieldSize) 0 1
-
--- function for placing a label with black default text
-label = translate (-5) (-5) . scale 0.1 0.1 . color black . text
-
-renderer GS { field = field } = applyViewPortToPicture viewPort $ pictures $ cells ++ grid where
-    grid = [uncurry translate (cellToScreen (x, y)) $ color black $ rectangleWire cellSize cellSize | x <- [0 .. fieldWidth - 1], y <- [0 .. fieldHeight - 1]]
-    cells = [uncurry translate (cellToScreen (x, y)) $ drawCell x y | x <- [0 .. fieldWidth - 1], y <- [0 .. fieldHeight - 1]]
-    
-    drawCell x y = case Data.Map.lookup (x, y) field of -- looking up for the cell's coords in the field set...
-
-        -- depending on the CellState of the looked up cell:
-        Nothing         -> color white $ rectangleSolid cellSize cellSize -- draw empty unvisited cell
-        Just Mine       -> pictures [ color black $ circleSolid (cellSize/2.5)] -- draw mine
-        Just (Opened 0) ->  pictures [ color green $ rectangleSolid cellSize cellSize] -- draw an opened cell with 0 mined neighbors 
-        Just (Opened n) -> pictures [ color green $ rectangleSolid cellSize cellSize, label $ show n] -- draw an opened cell with a num of mined neighbour
-        Just Flag       -> pictures [ color white $ rectangleSolid cellSize cellSize, label "V"] -- pin a 'V' flag on a cell
+-- RENDERING...
