@@ -15,8 +15,9 @@ drawBorder dist = translate dist 0 $ color borderColor $
                   rectangleSolid wallWidth (fromIntegral windowHeight)
 
 render :: GameState -> Picture
+ -- rendering a list of pictures translated below
 render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = pictures [ballPic, drawPaddle (px, py), 
-                                                              wallPic, borderPics, scoreText] -- rendering a list of pictures translated below
+                                                              wallPic, borderPics, scoreText]
   where
     ballPic = translate x y $ color ballColor $ circleSolid ballRad
     

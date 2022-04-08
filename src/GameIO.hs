@@ -15,7 +15,7 @@ run = do
 
 -- game state updater -- 
 updateApp :: Float -> GameState -> GameState
-updateApp t = ballMissed . physicsCollision . paddleControl . physicsBall t -- check gameOver here???
+updateApp t = ballMissed . physicsCollision . paddleControl . physicsBall t
 
 -- add random direction and location
 startGame :: StdGen -> IO ()

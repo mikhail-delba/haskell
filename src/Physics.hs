@@ -47,7 +47,8 @@ physicsCollision :: GameState -> GameState
 physicsCollision = borderHit . wallHit . paddleHit
     where 
     paddleHit :: GameState -> GameState
-    paddleHit gs@GS {ballDir = (x, y)} = gs { ballDir = (x, y'), ballSpeed = speed, score = scoreValue}
+    paddleHit gs@GS {ballDir = (x, y)} = gs { ballDir = (x, y'), 
+                                  ballSpeed = speed, score = scoreValue}
       where
         collided = checkPaddleCollision (ballPos gs) (paddlePos gs)
         y' = if collided then -y else y
