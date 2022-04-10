@@ -1,9 +1,6 @@
 module Consts where
 
-import System.Random
 import Graphics.Gloss
-import Graphics.Gloss.Data.ViewPort
-import Graphics.Gloss.Interface.IO.Game
 
 -- CONSTANTS --
 
@@ -12,6 +9,7 @@ windowWidth, windowHeight :: Int
 windowWidth = 500
 windowHeight = 500
 
+paddleMaxX :: Float
 paddleMaxX = (fromIntegral windowWidth/2) - paddleLength - wallWidth
 
 -- wall
@@ -45,9 +43,16 @@ borderColor :: Color
 borderColor = light green
 
 -- Initial values --
+initBallPos :: (Float, Float)
 initBallPos = (0.0, 0.0)
+
+initDir :: (Float, Float)
 initDir = (1.0, 1.0)
+
+initSpeed :: Float
 initSpeed = 200.0
+
+initPaddlePos :: (Float, Float)
 initPaddlePos = (0.0, -150.0)
 
 initialState :: GameState

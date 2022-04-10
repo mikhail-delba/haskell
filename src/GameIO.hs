@@ -1,6 +1,5 @@
 module GameIO where
 
-import System.Random
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 
@@ -10,16 +9,15 @@ import Rendering
 
 run :: IO ()
 run = do 
-    gen <- getStdGen
-    startGame gen
+    startGame
 
 -- game state updater -- 
 updateApp :: Float -> GameState -> GameState
 updateApp t = ballMissed . physicsCollision . paddleControl . physicsBall t
 
 -- add random direction and location
-startGame :: StdGen -> IO ()
-startGame gen = play (InWindow "Ping-Pong" (windowWidth, windowHeight) (500, 200)) 
+startGame :: IO ()
+startGame = play (InWindow "Ping-Pong" (windowWidth, windowHeight) (500, 200)) 
                           fieldColor 60 initialState render handleEvent updateApp
 
 -- EVENT HANDLING --

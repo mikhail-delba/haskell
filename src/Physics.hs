@@ -16,12 +16,12 @@ paddleControl gs@GS {paddlePos = (x, y), paddleMove = move} = gs {
                                    paddlePos = checkMaxX $ paddleMovePos (x,y) move }
   where 
     checkMaxX :: Pos -> Pos
-    checkMaxX (x, y) = (max (-paddleMaxX) (min paddleMaxX x), y)
+    checkMaxX (px,py) = (max (-paddleMaxX) (min paddleMaxX px), py)
 
     -- depending on the input, moving the paddle --
     paddleMovePos :: Pos -> Move -> Pos
-    paddleMovePos (x, y) MoveLeft = (x - paddleSpeed, y)
-    paddleMovePos (x, y) MoveRight = (x + paddleSpeed, y)
+    paddleMovePos (px, py) MoveLeft = (px - paddleSpeed, py)
+    paddleMovePos (px, py) MoveRight = (px + paddleSpeed, py)
     paddleMovePos pos NoMovement = pos
 
 -- check if the ball collided with a paddle...
@@ -33,11 +33,11 @@ checkPaddleCollision (bx, by) (px, py) = checkX && checkY -- check if the ball f
 
 -- check if the ball collided with the upper wall
 checkWallCollision :: Pos -> Bool
-checkWallCollision (x, y) =  y + ballRad >= fromIntegral windowWidth / 2
+checkWallCollision (_, py) =  py + ballRad >= fromIntegral windowWidth / 2
 
 -- check if the ball collided with either border
 checkBorderCollision :: Pos -> Bool
-checkBorderCollision (x, y) = leftBorderCollision || rightBorderCollision
+checkBorderCollision (x, _) = leftBorderCollision || rightBorderCollision
   where
     leftBorderCollision = x - ballRad <= -fromIntegral windowWidth / 2
     rightBorderCollision = x + ballRad >= fromIntegral windowWidth / 2
@@ -68,7 +68,7 @@ physicsCollision = borderHit . wallHit . paddleHit
 
 -- if the ball fell behind the paddle...
 ballMissed :: GameState -> GameState
-ballMissed gs@GS {ballPos = (x, y)} = if y <= - fromIntegral windowHeight/2 
+ballMissed gs@GS {ballPos = (_, y)} = if y <= - fromIntegral windowHeight/2 
                                         then gs { ballPos = initBallPos, ballSpeed = initSpeed,
                                          paddlePos = initPaddlePos, 
                                          gameOver = True, 
