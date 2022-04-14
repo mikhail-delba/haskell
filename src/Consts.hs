@@ -74,5 +74,7 @@ data GameState = GS
     paddlePos :: Pos,
     paddleMove :: Move,
     gameOver :: Bool, -- if lost, then TRUE
-    score :: Int
+    score :: Int,
+    scoreBoardShow :: Bool, -- when 'S' pressed before the game start, show the scoreboard
+    gameStarted :: Bool -- has the player started playing (press 'P')?
   } deriving Show --in order to show player's score as a number

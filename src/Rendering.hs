@@ -17,7 +17,7 @@ drawBorder dist = translate dist 0 $ color borderColor $
 render :: GameState -> Picture
  -- rendering a list of pictures translated below
 render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = pictures [ballPic, drawPaddle (px, py), 
-                                                              wallPic, borderPics, scoreText]
+                                                              wallPic, borderPics, scoreText, centerBall, cornerBall]
   where
     ballPic = translate x y $ color ballColor $ circleSolid ballRad
     
@@ -30,3 +30,10 @@ render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = pictures [ballPic, drawP
 
     scoreText = translate (-50) 150 $
       scale 0.2 0.2 $ color white $ text ("SCORE: " ++ show (score gs))
+    
+    centerBall = translate px py $ color ballColor $ circleSolid 2
+    cornerBall = translate (px - paddleLength) (py - paddleWidth) $ color red $ circleSolid 2
+
+
+drawScoreBoard :: GameState -> Picture
+-- drawing a ScoreBoard depending on the GameState ('S' pressed)

@@ -25,11 +25,20 @@ paddleControl gs@GS {paddlePos = (x, y), paddleMove = move} = gs {
     paddleMovePos pos NoMovement = pos
 
 -- check if the ball collided with a paddle...
-checkPaddleCollision :: Pos -> Pos -> Bool
-checkPaddleCollision (bx, by) (px, py) = checkX && checkY -- check if the ball falls for both axes
+checkPaddleCollisionV1 :: Pos -> Pos -> Bool
+checkPaddleCollisionV1 (bx, by) (px, py) = checkX && checkY -- check if the ball falls for both axes
   where
     checkX = (bx - ballRad <= px + paddleLength) && (bx - ballRad >= px - paddleLength)
-    checkY = (by - ballRad>= py - paddleWidth) && (by - ballRad <= py + paddleWidth)
+    checkY = (by - ballRad >= py - paddleWidth) && (by - ballRad <= py + paddleWidth)
+
+checkPaddleCollision :: Pos -> Pos -> Bool
+checkPaddleCollision (bx, by) (px, py) = ((dX ** 2 + dY ** 2) < (ballRad ** 2)) && (by > py + paddleWidth)
+-- check if the ball collides with the paddle
+  where
+    cornerX = px - paddleLength
+    cornerY = py - paddleWidth
+    dX = bx - max cornerX (min bx (cornerX + paddleLength * 2))
+    dY = by - max cornerY (min by (cornerY + paddleWidth * 2))
 
 -- check if the ball collided with the upper wall
 checkWallCollision :: Pos -> Bool
