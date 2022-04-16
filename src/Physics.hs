@@ -32,14 +32,14 @@ checkPaddleCollisionV1 (bx, by) (px, py) = checkX && checkY -- check if the ball
     checkY = (by - ballRad >= py - paddleWidth) && (by - ballRad <= py + paddleWidth)
 
 checkPaddleCollision :: Pos -> Pos -> Bool
-checkPaddleCollision (bx, by) (px, py) = ((dX ** 2 + dY ** 2) < (ballRad ** 2)) && (by > py + paddleWidth)
+checkPaddleCollision (bx, by) (px, py) = (dX ** 2 + dY ** 2) < (ballRad ** 2)
 -- check if the ball collides with the paddle
   where
     cornerX = px - paddleLength
     cornerY = py - paddleWidth
     dX = bx - max cornerX (min bx (cornerX + paddleLength * 2))
     dY = by - max cornerY (min by (cornerY + paddleWidth * 2))
-
+  
 -- check if the ball collided with the upper wall
 checkWallCollision :: Pos -> Bool
 checkWallCollision (_, py) =  py + ballRad >= fromIntegral windowWidth / 2
@@ -56,15 +56,22 @@ physicsCollision :: GameState -> GameState
 physicsCollision = borderHit . wallHit . paddleHit
     where 
     paddleHit :: GameState -> GameState
-    paddleHit gs@GS {ballDir = (x, y)} = gs { ballDir = (x, y'), 
+    paddleHit gs@GS {ballDir = (x, y), ballPos = (bx,_), paddlePos = (px,_)} = gs { ballDir = (x', y'), 
                                   ballSpeed = speed, score = scoreValue}
       where
         collided = checkPaddleCollision (ballPos gs) (paddlePos gs)
-        y' = if collided then -y else y
-        speed = if collided
+        rightSide = bx > px + paddleLength
+        leftSide = bx < px - paddleLength
+   
+        y' = if collided && (y < 0) then -y else y -- top collision => y vector changes
+        x' = if collided && ((x<0) && rightSide || (x>0) && leftSide) then -x else x -- side collision => x vector changes
+
+        bounceOff = collided && ( (y<0) || ((x<0) && rightSide || (x>0) && leftSide))
+
+        speed = if bounceOff
              then ballSpeed gs + 10 -- ball speed + 10 when hit by a paddle
              else ballSpeed gs
-        scoreValue = if collided
+        scoreValue = if bounceOff      
               then score gs + 1 else score gs
     
     wallHit :: GameState -> GameState
