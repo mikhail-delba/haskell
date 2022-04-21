@@ -56,7 +56,7 @@ physicsCollision :: GameState -> GameState
 physicsCollision = borderHit . wallHit . paddleHit
     where 
     paddleHit :: GameState -> GameState
-    paddleHit gs@GS {ballDir = (x, y), ballPos = (bx,_), paddlePos = (px,_)} = gs { ballDir = (x', y'), 
+    paddleHit gs@GS {ballDir = (x, y), ballPos = (bx,_), paddlePos = (px,_)} =  gs { ballDir = (x', y'), 
                                   ballSpeed = speed, score = scoreValue}
       where
         collided = checkPaddleCollision (ballPos gs) (paddlePos gs)
@@ -87,6 +87,8 @@ ballMissed :: GameState -> GameState
 ballMissed gs@GS {ballPos = (_, y)} = if y <= - fromIntegral windowHeight/2 
                                         then gs { ballPos = initBallPos, ballSpeed = initSpeed,
                                          paddlePos = initPaddlePos, 
-                                         gameOver = True, 
-                                         score = 0 } -- lost => gameOver = TRUE
+                                         gameStarted = False, 
+                                         score = 0,
+                                         gameOver = True 
+                                         } -- lost => gameOver = TRUE
                                       else gs

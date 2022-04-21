@@ -1,6 +1,7 @@
 module Consts where
 
 import Graphics.Gloss
+import Database.SQLite.Simple
 
 -- CONSTANTS --
 
@@ -55,8 +56,8 @@ initSpeed = 200.0
 initPaddlePos :: (Float, Float)
 initPaddlePos = (0.0, -150.0)
 
-initialState :: GameState
-initialState = GS initBallPos initDir initSpeed initPaddlePos NoMovement False 0
+initialState :: Connection -> ScoresList -> GameState
+initialState conn scores = GS initBallPos initDir initSpeed initPaddlePos NoMovement 0 False False False conn scores
 
 -- DATA/TYPES --
 type Pos = (Float, Float)
@@ -64,7 +65,7 @@ type Dir = (Float, Float)
 
 data Move = MoveRight | MoveLeft | NoMovement deriving Show
 
-data ScoreBoard = Scores {} -- a table of player's scores, storing top 5 up to date (IND. PART)
+type ScoresList = [(String, Int)]
 
 -- structure to store current game's data
 data GameState = GS 
@@ -73,8 +74,10 @@ data GameState = GS
     ballSpeed :: Float,
     paddlePos :: Pos,
     paddleMove :: Move,
-    gameOver :: Bool, -- if lost, then TRUE
     score :: Int,
-    scoreBoardShow :: Bool, -- when 'S' pressed before the game start, show the scoreboard
-    gameStarted :: Bool -- has the player started playing (press 'P')?
-  } deriving Show --in order to show player's score as a number
+    scoreBoardShow :: Bool, -- when 'S' pressed && gameStarted == False, show the scoreboard
+    gameStarted :: Bool, -- has the player started playing (press 'P')? if lost, then false => press 'P' again
+    gameOver :: Bool, -- player lost
+    connection :: Connection,
+    scoresList :: ScoresList
+  } 

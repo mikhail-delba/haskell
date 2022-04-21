@@ -3,6 +3,7 @@ module Rendering where
 import Graphics.Gloss
 
 import Consts
+--import Table
 
 -- RENDERING --
 drawPaddle :: Pos -> Picture
@@ -14,10 +15,10 @@ drawBorder :: Float -> Picture
 drawBorder dist = translate dist 0 $ color borderColor $ 
                   rectangleSolid wallWidth (fromIntegral windowHeight)
 
-render :: GameState -> Picture
+render :: GameState -> IO Picture
  -- rendering a list of pictures translated below
-render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = pictures [ballPic, drawPaddle (px, py), 
-                                                              wallPic, borderPics, scoreText, centerBall, cornerBall]
+render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = return (pictures [ballPic, drawPaddle (px, py), 
+                                                              wallPic, borderPics, scoreText, centerBall, cornerBall, lostSign, pictures (drawScoreBoard (-50) 180 gs)] )
   where
     ballPic = translate x y $ color ballColor $ circleSolid ballRad
     
@@ -28,12 +29,20 @@ render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = pictures [ballPic, drawP
     borderPics = pictures [drawBorder (-fromIntegral windowWidth/2), 
                         drawBorder (fromIntegral windowWidth/2)]
 
-    scoreText = translate (-50) 150 $
+    scoreText = if gameStarted gs then translate (-50) 150 $
       scale 0.2 0.2 $ color white $ text ("SCORE: " ++ show (score gs))
+                  else Blank
     
-    centerBall = translate px py $ color ballColor $ circleSolid 2
-    cornerBall = translate (px - paddleLength) (py - paddleWidth) $ color red $ circleSolid 2
+    centerBall = translate px py $ color ballColor $ circleSolid 2 -- used for debug
+
+    cornerBall = translate (px - paddleLength) (py - paddleWidth) $ color red $ circleSolid 2 -- used for debug
+
+    lostSign =  if gameOver gs then translate (-80) 100 $
+      scale 0.5 0.5 $ color black $ text ("LOST")
+                  else Blank
 
 
-drawScoreBoard :: GameState -> Picture
--- drawing a ScoreBoard depending on the GameState ('S' pressed)
+drawScoreBoard ::Int -> Int -> GameState -> [Picture] -- start from coords, drawing the text lines below each other
+
+drawScoreBoard x y gs = if scoreBoardShow gs then showRow x y (scoresList gs)
+  else [Blank]

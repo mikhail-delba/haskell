@@ -1,43 +1,75 @@
-module Table where
-
 {-# LANGUAGE OverloadedStrings #-}
 
-import System.IO
-import Control.Applicative
+module Table where
+
+--using sqlite-simple library
+
 import Database.SQLite.Simple
-import Database.SQLite.Simple.FromRow
+import Consts
 
-
---using SQLite-Simple library
 --there are two tables: 
 
--- USER_NAME :: string x USER_ID :: INT
--- USER_ID :: INT x TOP_SCORE :: INT
+-- users     USER_NAME :: string x USER_ID :: INT
+-- scores    USER_ID :: INT x TOP_SCORE :: INT
+
+-- sqlite3 scoreboard.db "CREATE TABLE users (id INTEGER PRIMARY KEY, username text);"
+-- sqlite3 scoreboard.db "CREATE TABLE scores (id INTEGER PRIMARY KEY, score integer);"
+
+-- INSERT INTO test (str) VALUES ('test string');"
 
 --TYPES
 type UserName = String 
-type UserID = Int
+type UserID = Int 
 type ScoreValue = Int
+
+data UserField = UserField Int String deriving (Show) -- field for 'users' table
+
+data ScoreField = ScoreField Int Int deriving (Show) -- field for 'scores' table
+
+instance FromRow UserField where fromRow = UserField <$> field <*> field
+instance FromRow ScoreField where fromRow = ScoreField <$> field <*> field
+
+instance ToRow ScoreField where
+  toRow (ScoreField id_ str) = toRow (id_, str)
 
 -- FUNCTION SIGNATURES
 
-userInput :: IO
+createID :: UserName -> IO () -- ~ createID in Table.hs
+createID userName = do
+  conn <- open "scoreboard.db"
+  execute conn "INSERT INTO users (username) VALUES (?)" (Only userName) -- maxID + 1 instead of ?
+  --print "user added to USERS"
+  close conn
+
+writeScoreToTable :: ScoreValue -> Connection -> IO ()
+writeScoreToTable scoreVal conn = do
+  execute conn "INSERT INTO scores (score) VALUES (?)" (Only scoreVal)  -- NEED TO WRITE: (id, score)...
+
+userInput :: IO( )
 userInput = do
---connect to SQL database and...
---run createID() with input name, for example "Oleg"
+  conn <- open "scoreboard.db"
+  createID "Oleg"
+  close conn
 
-createID :: UserName -> IO
--- create ID based on one's username; function used when game starts
--- function searches through the FIRST TABLE looking for the same name 
--- if no match, then a new ID is added
+getTop5 :: Connection -> IO ScoresList
+getTop5 conn = do
+  topList <- query_ conn "SELECT username, MAX(score) FROM scores left join users on users.id = scores.id group by username ORDER BY score DESC limit 10" :: IO ScoresList
+  return topList
 
-writeScore :: UserID -> ScoreValue -> IO
--- connect to SQL database and write the player's score into the second talbe (only if higher than last result)
--- function is run when game over
-
-getScoreBoard :: IO
--- run when 'S' pressed before the game start
--- run getScoreFromSql in order to get tuples and show scoreboard
-
-getScoreFromSQL :: [(userName, SQLData)] -> [(userName, Score)] 
--- here the SQLData is SQLInteger, getting a list of tuples to draw on the scoreboard
+--DEBUG
+main :: IO ()
+-- better call createID here...
+main = do
+  u <- userInput
+  putStrLn (show u)
+  --w <- writeScoreToTable 105 -- EVERY TIME HAS TO BE NEW
+  --putStrLn (show w)
+  conn <- open "scoreboard.db"
+  r <- query_ conn "SELECT * from users" :: IO [UserField]
+  mapM_ print r
+  r2 <- query_ conn "SELECT * from scores" :: IO [ScoreField]
+  mapM_ print r2
+  topList <- query_ conn "SELECT username, MAX(score) FROM scores left join users on users.id = scores.id group by username ORDER BY score DESC limit 10" :: IO [(String, Int)]
+  mapM_ print topList
+  print topList
+  close conn
