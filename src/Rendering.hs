@@ -42,7 +42,12 @@ render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = return (pictures [ballPi
                   else Blank
 
 
+
 drawScoreBoard ::Int -> Int -> GameState -> [Picture] -- start from coords, drawing the text lines below each other
 
 drawScoreBoard x y gs = if scoreBoardShow gs then showRow x y (scoresList gs)
   else [Blank]
+    
+showRow :: Int -> Int -> [(String, Int)] -> [Picture]
+showRow x' y' ((name, num) : xs) = [translate (fromIntegral x') (fromIntegral (y'-20)) $ scale 0.15 0.15 $ color white $ text (name ++ show num)] ++ (showRow x' (y'-20) xs)
+showRow _ _ [] = [Blank]
