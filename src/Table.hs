@@ -53,7 +53,7 @@ userInput = do
 
 getTop5 :: Connection -> IO ScoresList
 getTop5 conn = do
-  topList <- query_ conn "SELECT username, MAX(score) FROM scores left join users on users.id = scores.id group by username ORDER BY score DESC limit 10" :: IO ScoresList
+  topList <- query_ conn "SELECT username, MAX(score) FROM scores left join users on users.id = scores.id group by username ORDER BY score DESC limit 5" :: IO ScoresList
   return topList
 
 --DEBUG

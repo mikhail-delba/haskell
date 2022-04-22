@@ -88,7 +88,7 @@ ballMissed gs@GS {ballPos = (_, y)} = if y <= - fromIntegral windowHeight/2
                                         then gs { ballPos = initBallPos, ballSpeed = initSpeed,
                                          paddlePos = initPaddlePos, 
                                          gameStarted = False, 
-                                         score = 0,
+                                         --score = 0, NO NEED TO DO IT HERE!!!
                                          gameOver = True 
                                          } -- lost => gameOver = TRUE
                                       else gs
