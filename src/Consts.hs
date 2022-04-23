@@ -3,6 +3,7 @@ module Consts where
 import Graphics.Gloss
 import Database.SQLite.Simple
 
+
 -- CONSTANTS --
 
 -- window size
@@ -56,8 +57,9 @@ initSpeed = 200.0
 initPaddlePos :: (Float, Float)
 initPaddlePos = (0.0, -150.0)
 
-initialState :: Connection -> ScoresList -> GameState
-initialState conn scores = GS initBallPos initDir initSpeed initPaddlePos NoMovement 0 False False False conn scores
+initialState :: Connection -> UserName -> ScoresList -> GameState
+initialState conn name scores = GS initBallPos initDir initSpeed initPaddlePos NoMovement 0
+    False False False conn scores name
 
 -- DATA/TYPES --
 type Pos = (Float, Float)
@@ -66,6 +68,21 @@ type Dir = (Float, Float)
 data Move = MoveRight | MoveLeft | NoMovement deriving Show
 
 type ScoresList = [(String, Int)]
+
+-- DATABASE SIMPLE-SQL TYPES --
+type UserName = String 
+type UserID = Int 
+type ScoreValue = Int
+
+data UserField = UserField Int String deriving (Show) -- field for 'users' table
+
+data ScoreField = ScoreField Int Int deriving (Show) -- field for 'scores' table
+
+instance FromRow UserField where fromRow = UserField <$> field <*> field
+instance FromRow ScoreField where fromRow = ScoreField <$> field <*> field
+
+instance ToRow ScoreField where
+  toRow (ScoreField id_ str) = toRow (id_, str)
 
 -- structure to store current game's data
 data GameState = GS 
@@ -76,8 +93,9 @@ data GameState = GS
     paddleMove :: Move,
     score :: Int,
     scoreBoardShow :: Bool, -- when 'S' pressed && gameStarted == False, show the scoreboard
-    gameStarted :: Bool, -- has the player started playing (press 'P')? if lost, then false => press 'P' again
+    gameStarted :: Bool, -- has the player started playing (press 'P')?
     gameOver :: Bool, -- player lost
     connection :: Connection,
-    scoresList :: ScoresList
+    scoresList :: ScoresList,
+    userName :: UserName
   } 

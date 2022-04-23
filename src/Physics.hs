@@ -26,7 +26,7 @@ paddleControl gs@GS {paddlePos = (x, y), paddleMove = move} = gs {
 
 -- check if the ball collided with a paddle...
 checkPaddleCollisionV1 :: Pos -> Pos -> Bool
-checkPaddleCollisionV1 (bx, by) (px, py) = checkX && checkY -- check if the ball falls for both axes
+checkPaddleCollisionV1 (bx, by) (px, py) = checkX && checkY --check if the ball falls for both axes
   where
     checkX = (bx - ballRad <= px + paddleLength) && (bx - ballRad >= px - paddleLength)
     checkY = (by - ballRad >= py - paddleWidth) && (by - ballRad <= py + paddleWidth)
@@ -56,15 +56,18 @@ physicsCollision :: GameState -> GameState
 physicsCollision = borderHit . wallHit . paddleHit
     where 
     paddleHit :: GameState -> GameState
-    paddleHit gs@GS {ballDir = (x, y), ballPos = (bx,_), paddlePos = (px,_)} =  gs { ballDir = (x', y'), 
+    paddleHit gs@GS {ballDir = (x, y), ballPos = (bx,_), paddlePos = (px,_)} = gs {
+                                  ballDir = (x', y'),
                                   ballSpeed = speed, score = scoreValue}
       where
         collided = checkPaddleCollision (ballPos gs) (paddlePos gs)
         rightSide = bx > px + paddleLength
         leftSide = bx < px - paddleLength
-   
-        y' = if collided && (y < 0) then -y else y -- top collision => y vector changes
-        x' = if collided && ((x<0) && rightSide || (x>0) && leftSide) then -x else x -- side collision => x vector changes
+
+        -- top collision => y vector changes
+        y' = if collided && (y < 0) then -y else y
+        -- side collision => x vector changes
+        x' = if collided && ((x<0) && rightSide || (x>0) && leftSide) then -x else x 
 
         bounceOff = collided && ( (y<0) || ((x<0) && rightSide || (x>0) && leftSide))
 
