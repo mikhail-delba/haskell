@@ -14,14 +14,13 @@ import Table
 -- game state updater -- 
 updateApp :: Float -> GameState -> IO GameState
 updateApp _ gs@GS{gameOver = True} = do 
-                                      --writeScoreToTable (score gs) (connection gs)
                                       return gs
 updateApp t gs = return (updateGS t gs)
 
 
 updateGS :: Float  -> GameState -> GameState
 updateGS _ gs@GS{gameStarted = False} = gs
-updateGS t gs = ballMissed . physicsCollision . paddleControl . (physicsBall t) $ gs
+updateGS t gs = ballMissed . physicsCollision . paddleControl . physicsBall t $ gs
 
 
 checkArgs :: [String] -> String
@@ -45,17 +44,15 @@ startGame = do
 
 
 handleEventStart :: Event -> GameState -> IO GameState
--- !!!REDUNDANT IF!!!
 handleEventStart (EventKey (Graphics.Gloss.Interface.IO.Game.Char 'p') Down _ _) gs@GS{
-  gameStarted = False} = if (gameOver gs) then do
+  gameStarted = False} = if gameOver gs then do
                                               createID (userName gs)
                                               writeScoreToTable (score gs) (connection gs)
                                               return (gs { gameStarted = True,
                                               scoreBoardShow = False, gameOver = False, score = 0})
                                             else 
                                               return (gs { gameStarted = True,
-                                              scoreBoardShow = False, gameOver = False, score = 0})
-                                              -- "gameOver = False" - Delete!
+                                              scoreBoardShow = False, score = 0})
                                               
 handleEventStart event gs = return (handleEvent event gs)
 
