@@ -25,7 +25,7 @@ updateGS t gs = ballMissed . physicsCollision . paddleControl . physicsBall t $ 
 
 checkArgs :: [String] -> String
 checkArgs [name] = name
-checkArgs _ = "Pavel"
+checkArgs _ = "Mike"
 
 -- add random direction and location
 startGame :: IO () -- enter username here
@@ -40,8 +40,6 @@ startGame = do
 
 -- EVENT HANDLING --
 -- scoreboard and game start controls
-
-
 
 handleEventStart :: Event -> GameState -> IO GameState
 handleEventStart (EventKey (Graphics.Gloss.Interface.IO.Game.Char 'p') Down _ _) gs@GS{
