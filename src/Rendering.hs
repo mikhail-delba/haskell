@@ -41,13 +41,13 @@ render gs@GS {ballPos = (x, y), paddlePos = (px, py)} = return (pictures [ballPi
       color white $ text "PRESS P TO START"
             else Blank
 
-    scoreboardSign = if (not (scoreBoardShow gs)) && (not (gameStarted gs)) then 
+    scoreboardSign = if not (scoreBoardShow gs) && not (gameStarted gs) then 
       translate (-180) 30 $
       scale 0.2 0.2 $ color white $ text "PRESS S FOR SCOREBOARD"
                   else Blank
 
     lostSign =  if gameOver gs then translate (-80) 100 $
-      scale 0.5 0.5 $ color black $ text ("LOST")
+      scale 0.5 0.5 $ color black $ text "LOST"
                   else Blank
     
 

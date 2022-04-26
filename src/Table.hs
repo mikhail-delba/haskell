@@ -11,7 +11,7 @@ import Consts
 -- users     USER_NAME :: string x USER_ID :: INT
 -- scores    USER_ID :: INT x TOP_SCORE :: INT
 
--- sqlite3 scoreboard.db "CREATE TABLE users (id INTEGER PRIMARY KEY, username text);"
+-- sqlite3 scoreboard.db "CREATE TABLE users (id INTEGER PRIMARY KEY, username text);" 
 -- sqlite3 scoreboard.db "CREATE TABLE scores (id INTEGER PRIMARY KEY, score integer);"
 
 -- INSERT INTO test (str) VALUES ('test string');"

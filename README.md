@@ -7,3 +7,5 @@ Every hit, the ball's speed increases.
 Run game: $ stack run <name>
 
 If run without args, your name will be Mike
+
+Your score is saved only when 'P' pressed after lost

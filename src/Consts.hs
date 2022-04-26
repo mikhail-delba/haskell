@@ -45,16 +45,16 @@ borderColor :: Color
 borderColor = light green
 
 -- Initial values --
-initBallPos :: (Float, Float)
+initBallPos :: Pos
 initBallPos = (0.0, 0.0)
 
-initDir :: (Float, Float)
+initDir :: Dir
 initDir = (1.0, 1.0)
 
 initSpeed :: Float
 initSpeed = 200.0
 
-initPaddlePos :: (Float, Float)
+initPaddlePos :: Pos
 initPaddlePos = (0.0, -150.0)
 
 initialState :: Connection -> UserName -> ScoresList -> GameState
@@ -71,18 +71,7 @@ type ScoresList = [(String, Int)]
 
 -- DATABASE SIMPLE-SQL TYPES --
 type UserName = String 
-type UserID = Int 
 type ScoreValue = Int
-
-data UserField = UserField Int String deriving (Show) -- field for 'users' table
-
-data ScoreField = ScoreField Int Int deriving (Show) -- field for 'scores' table
-
-instance FromRow UserField where fromRow = UserField <$> field <*> field
-instance FromRow ScoreField where fromRow = ScoreField <$> field <*> field
-
-instance ToRow ScoreField where
-  toRow (ScoreField id_ str) = toRow (id_, str)
 
 -- structure to store current game's data
 data GameState = GS 
